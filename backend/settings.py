@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import dj_database_url
 import os
+from decouple import config
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -49,6 +51,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware" ,
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -102,9 +105,18 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 #     }
 # }
 
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default='postgresql://transport_broker_db_user:zUjLZyTBS7kb8OfaGpQfjXJgwpR1EspU@dpg-d2q6boadbo4c73br4dq0-a.oregon-postgres.render.com/transport_broker_db'
+#     )
+# }
+
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://transport_broker_db_user:zUjLZyTBS7kb8OfaGpQfjXJgwpR1EspU@dpg-d2q6boadbo4c73br4dq0-a.oregon-postgres.render.com/transport_broker_db'
+        default=config(
+            'DATABASE_URL',
+            default='postgresql://transport_broker_db_user:password@localhost:5432/transport_broker_db'
+        )
     )
 }
 
@@ -145,7 +157,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+
+# Tell Django where to put collected static files
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# (optional but recommended for Render/Heroku-like setups)
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
