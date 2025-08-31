@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-fm)3f96&-=$2ue$h(pd1g-z+23!xa11i#*+#1l^6=1nz$bzs_2
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-# ALLOWED_HOSTS = ['transportbrokerapp-backend.onrender.com']
+ALLOWED_HOSTS = ['transportbrokerapp-backend.onrender.com']
 
 # ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost").split(",")
 
@@ -102,13 +102,14 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 #     }
 # }
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default='postgresql://transport_broker_db_user:zUjLZyTBS7kb8OfaGpQfjXJgwpR1EspU@dpg-d2q6boadbo4c73br4dq0-a.oregon-postgres.render.com/transport_broker_db'
-    )
-}
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default='postgresql://transport_broker_db_user:zUjLZyTBS7kb8OfaGpQfjXJgwpR1EspU@dpg-d2q6boadbo4c73br4dq0-a.oregon-postgres.render.com/transport_broker_db'
+#     )
+# }
 
-ALLOWED_HOSTS = ['your-backend.onrender.com']
+
+# ALLOWED_HOSTS = ['your-backend.onrender.com']
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
