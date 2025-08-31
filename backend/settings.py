@@ -102,11 +102,11 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 #     }
 # }
 
-# DATABASES = {
-#     'default': dj_database_url.config(
-#         default='postgresql://transport_broker_db_user:zUjLZyTBS7kb8OfaGpQfjXJgwpR1EspU@dpg-d2q6boadbo4c73br4dq0-a.oregon-postgres.render.com/transport_broker_db'
-#     )
-# }
+DATABASES = {
+    'default': dj_database_url.config(
+        default='postgresql://transport_broker_db_user:zUjLZyTBS7kb8OfaGpQfjXJgwpR1EspU@dpg-d2q6boadbo4c73br4dq0-a.oregon-postgres.render.com/transport_broker_db'
+    )
+}
 
 
 # ALLOWED_HOSTS = ['your-backend.onrender.com']
