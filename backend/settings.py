@@ -28,8 +28,7 @@ SECRET_KEY = 'django-insecure-fm)3f96&-=$2ue$h(pd1g-z+23!xa11i#*+#1l^6=1nz$bzs_2
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'transportbrokerapp-backend.onrender.com',  # Add your Render URL
-    'localhost',  # optional for local testing
+    'transportbrokerapp-backend.onrender.com',
 ]
 
 # Application definition
