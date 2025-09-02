@@ -5,7 +5,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from accounts.models import Account, JournalEntry, JournalEntryLine  # adjust if reports in diff app
+from accounts.models import Account, AccountType
+from journals.models import JournalEntry, JournalEntryLine
 
 class LedgerReportView(APIView):
     """
