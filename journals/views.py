@@ -3,6 +3,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .models import JournalEntry
 from .serializers import JournalEntrySerializer
 
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 class JournalEntryViewSet(viewsets.ModelViewSet):
     queryset = JournalEntry.objects.prefetch_related('lines__account').all().order_by('-date', '-id')
@@ -14,3 +16,21 @@ class JournalEntryViewSet(viewsets.ModelViewSet):
         'voucher_no': ['exact'],
         'voucher_type': ['exact'],
     }
+
+    @action(detail=False, methods=["get"])
+    def next_voucher(self, request):
+        voucher_type = request.query_params.get("type", "JV")  # default JV
+        prefix = voucher_type
+        last_entry = JournalEntry.objects.filter(voucher_no__startswith=prefix).order_by("-id").first()
+
+        if last_entry:
+            try:
+                last_number = int(last_entry.voucher_no.replace(f"{prefix}-", ""))
+            except ValueError:
+                last_number = 0
+            new_number = last_number + 1
+        else:
+            new_number = 1
+
+        voucher_no = f"{prefix}-{new_number:05d}"
+        return Response({"voucher_no": voucher_no})
