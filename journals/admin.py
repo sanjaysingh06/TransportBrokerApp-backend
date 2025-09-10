@@ -9,6 +9,7 @@ class JournalEntryLineInline(admin.TabularInline):
 
 @admin.register(JournalEntry)
 class JournalEntryAdmin(admin.ModelAdmin):
-    list_display = ('voucher_no', 'date', 'narration', 'created_at')
+    list_display = ('voucher_no', 'voucher_type', 'date', 'narration', 'created_at')  # 👈 added voucher_type
+    list_filter = ('voucher_type', 'date')  # 👈 filter by type and date
     search_fields = ('voucher_no', 'narration')
     inlines = [JournalEntryLineInline]

@@ -8,8 +8,9 @@ class JournalEntryViewSet(viewsets.ModelViewSet):
     queryset = JournalEntry.objects.prefetch_related('lines__account').all().order_by('-date', '-id')
     serializer_class = JournalEntrySerializer
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
-    search_fields = ['voucher_no', 'narration', 'lines__account__code', 'lines__account__name']
+    search_fields = ['voucher_no', 'voucher_type','narration', 'lines__account__code', 'lines__account__name']
     filterset_fields = {
         'date': ['gte', 'lte'],
         'voucher_no': ['exact'],
+        'voucher_type': ['exact'],
     }
