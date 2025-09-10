@@ -17,12 +17,18 @@ class JournalEntryViewSet(viewsets.ModelViewSet):
         'voucher_type': ['exact'],
     }
 
-    @action(detail=False, methods=["get"])
+    @action(detail=False, methods=["get"], url_path="next-voucher")
     def next_voucher(self, request):
-        voucher_type = request.query_params.get("type", "JV")  # default JV
-        prefix = voucher_type
-        last_entry = JournalEntry.objects.filter(voucher_no__startswith=prefix).order_by("-id").first()
+        voucher_type = request.query_params.get("type", "JV")
+        prefix_map = {
+            "Receipt": "RV",
+            "Payment": "PV",
+            "Income": "JV",
+            "Expense": "JV",
+        }
+        prefix = prefix_map.get(voucher_type, "JV")
 
+        last_entry = JournalEntry.objects.filter(voucher_no__startswith=prefix).order_by("-id").first()
         if last_entry:
             try:
                 last_number = int(last_entry.voucher_no.replace(f"{prefix}-", ""))
@@ -32,5 +38,5 @@ class JournalEntryViewSet(viewsets.ModelViewSet):
         else:
             new_number = 1
 
-        voucher_no = f"{prefix}-{new_number:05d}"
-        return Response({"voucher_no": voucher_no})
+        next_voucher_no = f"{prefix}-{new_number:05d}"
+        return Response({"next_voucher_no": next_voucher_no})
