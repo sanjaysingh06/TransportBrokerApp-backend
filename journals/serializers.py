@@ -68,3 +68,38 @@ class JournalEntrySerializer(serializers.ModelSerializer):
             for ld in lines_data:
                 JournalEntryLine.objects.create(journal=journal, **ld)
         return journal
+
+    def update(self, instance, validated_data):
+        lines_data = validated_data.pop('lines', None)
+
+        with transaction.atomic():
+            # Update main journal entry fields
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+
+            # Handle nested lines update
+            if lines_data is not None:
+                # Get existing lines
+                existing_lines = {line.id: line for line in instance.lines.all()}
+                
+                # Update or create lines
+                for line_data in lines_data:
+                    line_id = line_data.get('id', None)
+                    
+                    if line_id and line_id in existing_lines:
+                        # Update existing line
+                        line = existing_lines[line_id]
+                        for attr, value in line_data.items():
+                            setattr(line, attr, value)
+                        line.save()
+                        del existing_lines[line_id]
+                    else:
+                        # Create new line
+                        JournalEntryLine.objects.create(journal=instance, **line_data)
+                
+                # Delete lines that weren't included in the update
+                for line in existing_lines.values():
+                    line.delete()
+
+        return instance
