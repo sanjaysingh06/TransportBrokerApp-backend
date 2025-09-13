@@ -141,7 +141,7 @@ def create_system_accounts(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', 'account_is_system'),  # make sure this matches your last migration
+        ('accounts', '0003_account_is_system_accounttype_is_system_and_more'),
     ]
 
     operations = [
