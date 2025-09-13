@@ -15,57 +15,145 @@ class AccountsConfig(AppConfig):
     name = 'accounts'
 
     def ready(self):
-        # Import inside to avoid AppRegistryNotReady errors
+        """
+        Create system AccountTypes and Accounts if they don't already exist.
+        This runs once on app startup.
+        """
         from .models import AccountType, Account
 
         try:
-            # Ensure some system account types exist
+            # -------- Account Types --------
             asset_type, _ = AccountType.objects.get_or_create(
                 code="ASSET",
-                defaults={"name": "Assets", "is_system": True}
-            )
-            liability_type, _ = AccountType.objects.get_or_create(
-                code="LIAB",
-                defaults={"name": "Liabilities", "is_system": True}
+                defaults={"name": "Assets", "normal_balance": "D", "is_system": True}
             )
 
-            # Create predefined parent accounts if not exists
-            receivable, _ = Account.objects.get_or_create(
-                code="AR",
+            liability_type, _ = AccountType.objects.get_or_create(
+                code="LIAB",
+                defaults={"name": "Liabilities", "normal_balance": "C", "is_system": True}
+            )
+
+            income_type, _ = AccountType.objects.get_or_create(
+                code="INC",
+                defaults={"name": "Income", "normal_balance": "C", "is_system": True}
+            )
+
+            expense_type, _ = AccountType.objects.get_or_create(
+                code="EXP",
+                defaults={"name": "Expense", "normal_balance": "D", "is_system": True}
+            )
+
+            # -------- System Accounts --------
+            # Assets
+            ar_account, _ = Account.objects.get_or_create(
+                code="2000",
                 defaults={
                     "name": "Accounts Receivable",
                     "account_type": asset_type,
-                    "is_system": True,
-                }
-            )
-            payable, _ = Account.objects.get_or_create(
-                code="AP",
-                defaults={
-                    "name": "Accounts Payable",
-                    "account_type": liability_type,
-                    "is_system": True,
+                    "is_system": True
                 }
             )
 
-            # Sub-parents under receivable/payable
-            Account.objects.get_or_create(
-                code="PARTY",
+            cash_account, _ = Account.objects.get_or_create(
+                code="1",
+                defaults={
+                    "name": "Cash In Hand",
+                    "account_type": asset_type,
+                    "is_system": True
+                }
+            )
+
+            bank_account, _ = Account.objects.get_or_create(
+                code="2",
+                defaults={
+                    "name": "Bank",
+                    "account_type": asset_type,
+                    "is_system": True
+                }
+            )
+
+            # Sub-account under Accounts Receivable
+            party_accounts, _ = Account.objects.get_or_create(
+                code="2100",
                 defaults={
                     "name": "Party Accounts",
                     "account_type": asset_type,
-                    "parent": receivable,
-                    "is_system": True,
+                    "parent": ar_account,
+                    "is_system": True
                 }
             )
+
+            # Users can create Party A, Party B under party_accounts
+            # Example system party
             Account.objects.get_or_create(
-                code="TRANSPORT",
+                code="2101",
+                defaults={
+                    "name": "Party A",
+                    "account_type": asset_type,
+                    "parent": party_accounts,
+                    "is_system": True
+                }
+            )
+
+            # Liabilities
+            ap_account, _ = Account.objects.get_or_create(
+                code="1001",
+                defaults={
+                    "name": "Accounts Payable",
+                    "account_type": liability_type,
+                    "is_system": True
+                }
+            )
+
+            transport_accounts, _ = Account.objects.get_or_create(
+                code="1100",
                 defaults={
                     "name": "Transport Accounts",
                     "account_type": liability_type,
-                    "parent": payable,
-                    "is_system": True,
+                    "parent": ap_account,
+                    "is_system": True
                 }
             )
+
+            Account.objects.get_or_create(
+                code="1101",
+                defaults={
+                    "name": "Transport X",
+                    "account_type": liability_type,
+                    "parent": transport_accounts,
+                    "is_system": True
+                }
+            )
+
+            # Income
+            Account.objects.get_or_create(
+                code="501",
+                defaults={
+                    "name": "Commission",
+                    "account_type": income_type,
+                    "is_system": True
+                }
+            )
+
+            Account.objects.get_or_create(
+                code="502",
+                defaults={
+                    "name": "Other Income",
+                    "account_type": income_type,
+                    "is_system": True
+                }
+            )
+
+            # Expense
+            Account.objects.get_or_create(
+                code="601",
+                defaults={
+                    "name": "Labour Expenses",
+                    "account_type": expense_type,
+                    "is_system": True
+                }
+            )
+
         except (OperationalError, ProgrammingError):
-            # Database might not be ready yet (e.g., during migrations)
+            # Database not ready yet (during migrations)
             pass
