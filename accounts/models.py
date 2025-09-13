@@ -1,8 +1,7 @@
 # from decimal import Decimal
 # from django.db import models
-# from django.utils import timezone
 
-# # You need to define AccountType or import it if it's in another file
+
 # class AccountType(models.Model):
 #     name = models.CharField(max_length=100)
 #     code = models.CharField(max_length=20, unique=True)
@@ -19,12 +18,24 @@
 #     Chart of Accounts node. Supports hierarchy via parent.
 #     Use opening_balance only for initialization; actual balances come from journals.
 #     """
-#     account_type = models.ForeignKey(AccountType, on_delete=models.PROTECT, related_name='accounts')
+#     account_type = models.ForeignKey(
+#         AccountType,
+#         on_delete=models.PROTECT,
+#         related_name='accounts'
+#     )
 #     name = models.CharField(max_length=255)
 #     code = models.CharField(max_length=40, unique=True)
-#     parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='children')
+#     parent = models.ForeignKey(
+#         'self',
+#         null=True, blank=True,
+#         on_delete=models.CASCADE,
+#         related_name='children'
+#     )
 #     is_active = models.BooleanField(default=True)
-#     opening_balance = models.DecimalField(max_digits=18, decimal_places=2, default=Decimal('0.00'))
+#     opening_balance = models.DecimalField(
+#         max_digits=18, decimal_places=2,
+#         default=Decimal('0.00')
+#     )
 
 #     class Meta:
 #         ordering = ['code']
@@ -37,46 +48,32 @@
 #         return f"{self.code} - {self.name}"
 
 
-# class JournalEntry(models.Model):
-#     """Journal/Voucher header."""
-#     voucher_no = models.CharField(max_length=64, unique=True)
-#     date = models.DateField(default=timezone.now)
-#     narration = models.TextField(blank=True)
-#     created_at = models.DateTimeField(auto_now_add=True)
-
-#     class Meta:
-#         ordering = ['-date', '-id']
-
-#     def __str__(self):
-#         return f"{self.voucher_no} | {self.date}"
-
-
-# class JournalEntryLine(models.Model):
-#     """Lines: exactly one of debit or credit must be > 0."""
-#     journal = models.ForeignKey(JournalEntry, on_delete=models.CASCADE, related_name='lines')
-#     account = models.ForeignKey(Account, on_delete=models.PROTECT)
-#     debit = models.DecimalField(max_digits=18, decimal_places=2, default=Decimal('0.00'))
-#     credit = models.DecimalField(max_digits=18, decimal_places=2, default=Decimal('0.00'))
-#     remarks = models.CharField(max_length=255, blank=True)
-
-#     class Meta:
-#         ordering = ['id']
-#         indexes = [
-#             models.Index(fields=['account']),
-#             models.Index(fields=['journal']),
-#         ]
-
-#     def __str__(self):
-#         return f"{self.journal.voucher_no} - {self.account.code} ({self.debit}/{self.credit})"
-
-
 from decimal import Decimal
 from django.db import models
 
 
 class AccountType(models.Model):
-    name = models.CharField(max_length=100)
+    """
+    Broad classification (Asset, Liability, Income, Expense, Equity).
+    Defines the natural balance side (Debit or Credit).
+    """
+    BALANCE_CHOICES = [
+        ('D', 'Debit'),
+        ('C', 'Credit'),
+    ]
+
+    name = models.CharField(max_length=100, unique=True)
     code = models.CharField(max_length=20, unique=True)
+    normal_balance = models.CharField(
+        max_length=1,
+        choices=BALANCE_CHOICES,
+        help_text="Normal balance side for this account type",
+        default='D'
+    )
+    is_system = models.BooleanField(
+        default=False,
+        help_text="True if system-defined and should not be deleted"
+    )
 
     class Meta:
         ordering = ['code']
@@ -87,8 +84,9 @@ class AccountType(models.Model):
 
 class Account(models.Model):
     """
-    Chart of Accounts node. Supports hierarchy via parent.
-    Use opening_balance only for initialization; actual balances come from journals.
+    Chart of Accounts with hierarchy.
+    Top-level accounts can be system-defined (e.g., Accounts Receivable).
+    Users create sub-accounts under these (e.g., Party A).
     """
     account_type = models.ForeignKey(
         AccountType,
@@ -104,6 +102,10 @@ class Account(models.Model):
         related_name='children'
     )
     is_active = models.BooleanField(default=True)
+    is_system = models.BooleanField(
+        default=False,
+        help_text="True if system-defined and should not be deleted"
+    )
     opening_balance = models.DecimalField(
         max_digits=18, decimal_places=2,
         default=Decimal('0.00')
@@ -118,3 +120,13 @@ class Account(models.Model):
 
     def __str__(self):
         return f"{self.code} - {self.name}"
+
+    @property
+    def full_path(self):
+        """Return hierarchical path like: Asset → Accounts Receivable → Party A"""
+        parts = []
+        account = self
+        while account:
+            parts.append(account.name)
+            account = account.parent
+        return " → ".join(reversed(parts))
