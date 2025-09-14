@@ -108,7 +108,7 @@ def create_system_accounts(apps, schema_editor):
         }
     )
 
-    # Income
+    # Income Accounts
     Account.objects.get_or_create(
         code="501",
         defaults={
@@ -121,7 +121,16 @@ def create_system_accounts(apps, schema_editor):
     Account.objects.get_or_create(
         code="502",
         defaults={
-            "name": "Other Income",
+            "name": "Cartage",
+            "account_type": income_type,
+            "is_system": True
+        }
+    )
+
+    Account.objects.get_or_create(
+        code="503",
+        defaults={
+            "name": "Other Charges",
             "account_type": income_type,
             "is_system": True
         }
