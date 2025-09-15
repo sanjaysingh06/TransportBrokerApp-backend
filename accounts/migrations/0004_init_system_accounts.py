@@ -108,17 +108,6 @@ def create_system_accounts(apps, schema_editor):
         }
     )
 
-    # 🚚 Delivery Accounts (new)
-    delivery_accounts, _ = Account.objects.get_or_create(
-        code="1200",
-        defaults={
-            "name": "Delivery Accounts",
-            "account_type": liability_type,
-            "parent": ap_account,   # child of Accounts Payable
-            "is_system": True
-        }
-    )
-
     # Income Accounts
     Account.objects.get_or_create(
         code="501",
@@ -167,5 +156,3 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(create_system_accounts),
     ]
-
-    
