@@ -1,47 +1,28 @@
 from decimal import Decimal
 from django.db import transaction
-from accounts.models import Account, AccountType
+from accounts.models import Account
 from journals.models import JournalEntry, JournalEntryLine
-
 
 def create_receipt_voucher(receipt):
     """
-    Create a voucher for each receipt with separate accounts for freight, commission, cartage, labour, other,
-    party, transport, and delivery accounts.
-    All vouchers created here will fall under Journal Vouchers (JV series).
+    Create a voucher for the receipt with proper account mapping.
     """
     try:
         with transaction.atomic():
-            # Correct account types from DB
-            income_type = AccountType.objects.get(id=5)   # Comm, Cartage, Other (Income)
-            expense_type = AccountType.objects.get(id=6)  # Labour (Expense)
-
-            # Use linked accounts directly from receipt
+            # Linked accounts
             party_account = receipt.party_account
             transport_account = receipt.transport_account
             delivery_account = receipt.delivery_person
 
-            # Fixed accounts with explicit codes
-            comm_account, _ = Account.objects.get_or_create(
-                name="Comm Account", account_type=income_type,
-                defaults={"code": "1500"}
-            )
-            cartage_account, _ = Account.objects.get_or_create(
-                name="Cartage Account", account_type=income_type,
-                defaults={"code": "1501"}
-            )
-            labour_account, _ = Account.objects.get_or_create(
-                name="Labour Account", account_type=expense_type,
-                defaults={"code": "1502"}
-            )
-            other_account, _ = Account.objects.get_or_create(
-                name="Other Account", account_type=income_type,
-                defaults={"code": "1503"}
-            )
+            # Fixed accounts from DB
+            comm_account = Account.objects.get(name="Commission")         # id=9
+            cartage_account = Account.objects.get(name="Cartage Account")  # id=29
+            labour_account = Account.objects.get(name="Labour Expenses")   # id=11
+            other_account = Account.objects.get(name="Other Charges")      # id=19
 
-            # Journal Entry (Voucher Header) → don’t set voucher_no, let auto JV series generate
+            # Create Journal Entry (Voucher)
             journal_entry = JournalEntry.objects.create(
-                voucher_type="JV",  # explicitly Journal Voucher
+                voucher_type="JV",
                 date=receipt.date,
                 narration=f"Receipt {receipt.receipt_no}"
             )
@@ -55,7 +36,7 @@ def create_receipt_voucher(receipt):
                 remarks="Total receipt amount"
             )
 
-            # Credit Lines
+            # Credit lines
             credit_lines = [
                 (transport_account, receipt.freight, "Freight charges"),
                 (comm_account, receipt.comm, "Commission charges"),
@@ -66,7 +47,7 @@ def create_receipt_voucher(receipt):
             ]
 
             for account, amount, remark in credit_lines:
-                if amount and Decimal(amount) > 0:
+                if account and amount and Decimal(amount) > 0:
                     JournalEntryLine.objects.create(
                         journal=journal_entry,
                         account=account,
