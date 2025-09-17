@@ -87,6 +87,14 @@ class Receipt(models.Model):
         null=True,
         blank=True
     )
+    journal_entry = models.OneToOneField(
+        "journals.JournalEntry",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="receipt"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
