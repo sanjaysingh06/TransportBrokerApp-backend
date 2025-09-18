@@ -119,13 +119,24 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 #     )
 # }
 
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default=config(
+#             'DATABASE_URL',
+#             default='postgresql://transport_broker_db_user:password@localhost:5432/transport_broker_db'
+#         )
+#     )
+# }
+
 DATABASES = {
-    'default': dj_database_url.config(
-        default=config(
-            'DATABASE_URL',
-            default='postgresql://transport_broker_db_user:password@localhost:5432/transport_broker_db'
-        )
-    )
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "neondb",
+        "USER": "neondb_owner",
+        "PASSWORD": "npg_Tk1pKyQqS4ho",
+        "HOST": "ep-silent-unit-adbwxof8-pooler.c-2.us-east-1.aws.neon.tech",
+        "PORT": "5432",
+    }
 }
 
 
