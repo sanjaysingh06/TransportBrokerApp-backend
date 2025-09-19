@@ -1,27 +1,3 @@
-# from rest_framework import serializers
-# from .models import AccountType, Account
-
-
-# class AccountTypeSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = AccountType
-#         fields = ['id', 'name', 'code']
-
-
-# class AccountSerializer(serializers.ModelSerializer):
-#     parent_name = serializers.SerializerMethodField(read_only=True)
-
-#     class Meta:
-#         model = Account
-#         fields = [
-#             'id', 'account_type', 'name', 'code',
-#             'parent', 'parent_name', 'is_active', 'opening_balance'
-#         ]
-
-#     def get_parent_name(self, obj):
-#         return str(obj.parent) if obj.parent else None
-
-
 from rest_framework import serializers
 from .models import AccountType, Account
 

@@ -14,6 +14,7 @@ from pathlib import Path
 import dj_database_url
 import os
 from decouple import config
+from datetime import timedelta
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -49,12 +50,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
     'receipts',
     'corsheaders',
     'accounts',
     'django_filters',
     'reports',
     'journals',
+
 ]
 
 MIDDLEWARE = [
@@ -192,6 +195,25 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+# REST_FRAMEWORK = {
+#     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+# }
+
 REST_FRAMEWORK = {
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),        # short-lived
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),           # adjust as needed
+    "ROTATE_REFRESH_TOKENS": True,                        # rotate on refresh
+    "BLACKLIST_AFTER_ROTATION": True,                     # requires blacklist app if used
+    "ALGORITHM": "HS256",
+    # optionally set SIGNING_KEY if you have a custom secret:
+    # "SIGNING_KEY": SECRET_KEY,
 }
