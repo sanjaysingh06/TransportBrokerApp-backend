@@ -3,13 +3,17 @@ from decimal import Decimal
 from django.db import transaction
 from accounts.models import Account
 from journals.models import JournalEntry, JournalEntryLine
+import logging
 
+logger = logging.getLogger(__name__)
 
 def create_receipt_voucher(receipt, journal=None):
     """
     Create or update a voucher for the receipt with proper account mapping.
     If `journal` is provided → update existing journal entry.
     Otherwise → create a new one.
+
+    This function logs errors and ensures that missing accounts are reported.
     """
     try:
         with transaction.atomic():
@@ -18,11 +22,14 @@ def create_receipt_voucher(receipt, journal=None):
             transport_account = receipt.transport_account
             delivery_account = receipt.delivery_person
 
-            # Fixed accounts from DB
-            comm_account = Account.objects.get(name="Commission")
-            cartage_account = Account.objects.get(name="Cartage Account")
-            labour_account = Account.objects.get(name="Labour Expenses")
-            other_account = Account.objects.get(name="Other Charges")
+            if not party_account:
+                raise ValueError(f"Party account missing for receipt {receipt.receipt_no}")
+
+            # Fixed accounts from DB with safe get_or_create
+            comm_account, _ = Account.objects.get_or_create(name="Commission")
+            cartage_account, _ = Account.objects.get_or_create(name="Cartage Account")
+            labour_account, _ = Account.objects.get_or_create(name="Labour Expenses")
+            other_account, _ = Account.objects.get_or_create(name="Other Charges")
 
             # Create new JournalEntry if not passed
             if not journal:
@@ -32,7 +39,7 @@ def create_receipt_voucher(receipt, journal=None):
                     narration=f"Receipt {receipt.receipt_no}"
                 )
 
-            # ✅ Always clear existing lines before recreating
+            # Clear existing lines before recreating
             journal.lines.all().delete()
 
             # Debit: Party Account
@@ -44,7 +51,7 @@ def create_receipt_voucher(receipt, journal=None):
                 remarks="Total receipt amount"
             )
 
-            # Credit lines
+            # Credit lines mapping
             credit_lines = [
                 (transport_account, receipt.freight, "Freight charges"),
                 (comm_account, receipt.comm, "Commission charges"),
@@ -54,6 +61,7 @@ def create_receipt_voucher(receipt, journal=None):
                 (delivery_account, receipt.delivery_charge, "Delivery charges"),
             ]
 
+            # Create credit entries only if account exists and amount > 0
             for account, amount, remark in credit_lines:
                 if account and amount and Decimal(amount) > 0:
                     JournalEntryLine.objects.create(
@@ -64,7 +72,7 @@ def create_receipt_voucher(receipt, journal=None):
                         remarks=remark
                     )
 
-            # ✅ Save reference of voucher to receipt
+            # Save reference of voucher to receipt
             if not receipt.journal_entry:
                 receipt.journal_entry = journal
                 receipt.save(update_fields=["journal_entry"])
@@ -72,5 +80,7 @@ def create_receipt_voucher(receipt, journal=None):
             return journal
 
     except Exception as e:
-        print(f"Error creating voucher for receipt {receipt.receipt_no}: {e}")
-        return None
+        # Log full stack trace
+        logger.exception(f"Error creating voucher for receipt {receipt.receipt_no}")
+        # Re-raise the exception in development so you see it immediately
+        raise
