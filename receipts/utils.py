@@ -27,7 +27,7 @@ def create_receipt_voucher(receipt, journal=None):
 
             # Fixed accounts from DB with safe get_or_create
             comm_account, _ = Account.objects.get_or_create(name="Commission")
-            cartage_account, _ = Account.objects.get_or_create(name="Cartage Account")
+            cartage_account, _ = Account.objects.get_or_create(name="Cartage")
             labour_account, _ = Account.objects.get_or_create(name="Labour Expenses")
             other_account, _ = Account.objects.get_or_create(name="Other Charges")
 
