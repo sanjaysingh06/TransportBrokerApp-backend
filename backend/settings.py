@@ -179,7 +179,7 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     # "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),        # short-lived
-    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=30),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),           # adjust as needed
     "ROTATE_REFRESH_TOKENS": True,                        # rotate on refresh
     "BLACKLIST_AFTER_ROTATION": True,                     # requires blacklist app if used
