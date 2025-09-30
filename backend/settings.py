@@ -168,6 +168,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # }
 
 REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "backend.exceptions.custom_exception_handler",
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
@@ -177,7 +178,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),        # short-lived
+    # "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),        # short-lived
+    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),           # adjust as needed
     "ROTATE_REFRESH_TOKENS": True,                        # rotate on refresh
     "BLACKLIST_AFTER_ROTATION": True,                     # requires blacklist app if used
